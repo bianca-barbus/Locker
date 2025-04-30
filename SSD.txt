@@ -1,0 +1,274 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.std_logic_unsigned.all;
+
+entity SSD is
+    Port ( clk : in STD_LOGIC;
+           err : in STD_LOGIC;
+           op : in STD_LOGIC;
+           cl : in STD_LOGIC;
+           en_SSD : in STD_LOGIC_VECTOR (3 downto 0);--------------------------------
+           a: in STD_LOGIC_VECTOR (3 downto 0);
+           b: in STD_LOGIC_VECTOR (3 downto 0);
+           c: in STD_LOGIC_VECTOR (3 downto 0);
+           d: in STD_LOGIC_VECTOR (3 downto 0);
+           e: in STD_LOGIC_VECTOR (3 downto 0);
+           en : in STD_LOGIC;
+           an1 : out STD_LOGIC_VECTOR (3 downto 0);
+           an2 : out STD_LOGIC_VECTOR (3 downto 0);
+           seg : out STD_LOGIC_VECTOR (6 downto 0));
+end SSD;
+
+architecture Behavioral of SSD is
+
+signal number: STD_LOGIC_VECTOR (3 downto 0);
+signal counter: STD_LOGIC_VECTOR (19 downto 0); 
+signal nr_an: std_logic_vector(2 downto 0);
+
+begin
+
+process(number)
+begin
+if err = '0' and op = '0' and cl = '0' then
+    case number is
+    when "0000" => seg <= "1000000"; -- 0     
+    when "0001" => seg <= "1111001"; -- 1 
+    when "0010" => seg <= "0100100"; -- 2 
+    when "0011" => seg <= "0110000"; -- 3 
+    when "0100" => seg <= "0011001"; -- 4 
+    when "0101" => seg <= "0010010"; -- 5 
+    when "0110" => seg <= "0000010"; -- 6 
+    when "0111" => seg <= "1111000"; -- 7 
+    when "1000" => seg <= "0000000"; -- 8     
+    when "1001" => seg <= "0010000"; -- 9 
+    when "1010" => seg <= "0001000"; -- A
+    when "1011" => seg <= "0000011"; -- b
+    when "1100" => seg <= "1000110"; -- C
+    when "1101" => seg <= "0100001"; -- d
+    when "1110" => seg <= "0000110"; -- E
+    when "1111" => seg <= "0001110"; -- F
+    end case;
+elsif err = '1' and op = '0' and cl = '0' then
+case number is
+    when "0000" => seg <= "0001110"; -- F
+    when "0001" => seg <= "0001000"; -- A
+    when "0010" => seg <= "1000111"; -- L
+    when "0011" => seg <= "0010010"; -- S
+    when "0100" => seg <= "0000110"; -- E
+    when others => seg <= "1111111";
+end case;
+elsif err = '0' and op = '1' and cl = '0' then
+case number is
+    when "0000" => seg <= "1000000"; -- O
+    when "0001" => seg <= "0001100"; -- P
+    when "0010" => seg <= "0000110"; -- E
+    when "0011" => seg <= "1001000"; -- N
+    when others => seg <= "1111111";
+end case;
+elsif err = '0' and op = '0' and cl = '1' then
+case number is
+    when "0000" => seg <= "1000110"; -- C
+    when "0001" => seg <= "1000111"; -- L
+    when "0010" => seg <= "1000000"; -- O
+    when "0011" => seg <= "0010010"; -- S
+    when "0100" => seg <= "0000110"; -- E
+    when others => seg <= "1111111";
+end case;
+end if;
+end process;
+
+process(clk,en)
+begin 
+    if(en='0') then counter <= (others => '0');
+    elsif(rising_edge(clk)) then counter <= counter + 1;
+    end if;
+end process;
+nr_an <= counter(19 downto 17);
+ 
+process(nr_an)
+begin
+if err = '0' and op = '0' and cl = '0' and en_SSD = "1111" then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= a;
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= b; 
+    when "011" => an1 <= "1101";
+                  an2 <= "1111";
+                  number <= c;
+    when "100" => an1 <= "1110";
+                  an2 <= "1111"; 
+                  number <= d;
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1110";
+                  number <= e;    
+end case;
+elsif err = '0' and op = '0' and cl = '0' and en_SSD = "1110" then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= a;
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= b; 
+    when "011" => an1 <= "1101";
+                  an2 <= "1111";
+                  number <= c;
+    when "100" => an1 <= "1111";
+                  an2 <= "1111"; 
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1110";
+                  number <= e;    
+end case;
+elsif err = '0' and op = '0' and cl = '0' and en_SSD = "1100" then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= a;
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= b; 
+    when "011" => an1 <= "1111";
+                  an2 <= "1111";
+    when "100" => an1 <= "1111";
+                  an2 <= "1111"; 
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1110";
+                  number <= e;    
+end case;
+elsif err = '0' and op = '0' and cl = '0' and en_SSD = "1000" then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= a;
+    when "010" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "011" => an1 <= "1111";
+                  an2 <= "1111";
+    when "100" => an1 <= "1111";
+                  an2 <= "1111"; 
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1110";
+                  number <= e;    
+end case;
+elsif err = '0' and op = '0' and cl = '0' and en_SSD = "0000" then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "1111";
+                  an2 <= "1111";  
+    when "010" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "011" => an1 <= "1111";
+                  an2 <= "1111";
+    when "100" => an1 <= "1111";
+                  an2 <= "1111"; 
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1110";
+                  number <= e;    
+end case;
+elsif err = '1' and op = '0' and cl = '0' then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= "0000";
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= "0001"; 
+    when "011" => an1 <= "1101";
+                  an2 <= "1111";
+                  number <= "0010";
+    when "100" => an1 <= "1110";
+                  an2 <= "1111"; 
+                  number <= "0011";
+    when "101" => an1 <= "1111";  
+                  an2 <= "0111";
+                  number <= "0100";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1111";    
+end case;
+elsif err = '0' and op = '1' and cl = '0' then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= "0000";
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= "0001"; 
+    when "011" => an1 <= "1101";
+                  an2 <= "1111";
+                  number <= "0010";
+    when "100" => an1 <= "1110";
+                  an2 <= "1111"; 
+                  number <= "0011";
+    when "101" => an1 <= "1111";  
+                  an2 <= "1111";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1111";    
+end case;
+elsif err = '0' and op = '0' and cl = '1' then
+case nr_an is
+    when "000" => an1 <= "1111"; 
+                  an2 <= "1111"; 
+    when "001" => an1 <= "0111";
+                  an2 <= "1111";  
+                  number <= "0000";
+    when "010" => an1 <= "1011"; 
+                  an2 <= "1111";
+                  number <= "0001"; 
+    when "011" => an1 <= "1101";
+                  an2 <= "1111";
+                  number <= "0010";
+    when "100" => an1 <= "1110";
+                  an2 <= "1111"; 
+                  number <= "0011";
+    when "101" => an1 <= "1111";  
+                  an2 <= "0111";
+                  number <= "0100";
+    when "110" => an1 <= "1111";
+                  an2 <= "1111";    
+    when "111" => an1 <= "1111"; 
+                  an2 <= "1111";    
+end case;
+end if;
+end process;
+
+end Behavioral;

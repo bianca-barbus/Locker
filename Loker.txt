@@ -1,0 +1,144 @@
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use IEEE.STD_LOGIC_ARITH.ALL;
+use IEEE.STD_LOGIC_UNSIGNED.ALL;
+
+entity Loker is
+  Port ( clk : in STD_LOGIC;
+         en : in STD_LOGIC;
+         led : inout STD_LOGIC;
+         but : in STD_LOGIC;
+         reset : in STD_LOGIC;
+         JA1 : in STD_LOGIC_VECTOR (3 downto 0);
+		 JA2: out STD_LOGIC_VECTOR(3 downto 0);
+         an1 : out STD_LOGIC_VECTOR (3 downto 0);
+         an2 : out STD_LOGIC_VECTOR (3 downto 0);
+         seg : out STD_LOGIC_VECTOR (6 downto 0));
+end Loker;
+
+architecture Behavioral of Loker is
+
+component decoder is
+    Port ( clk : in  STD_LOGIC;
+           en : in STD_LOGIC;
+           Row : in  STD_LOGIC_VECTOR (3 downto 0);
+		   Col : out  STD_LOGIC_VECTOR (3 downto 0);
+           DecodeOut : out  STD_LOGIC_VECTOR (3 downto 0));
+end component decoder;
+
+component SSD is
+    Port ( clk : in STD_LOGIC;
+           err : in STD_LOGIC;
+           op : in STD_LOGIC;
+           cl : in STD_LOGIC;
+           en_SSD : in STD_LOGIC_VECTOR (3 downto 0);
+           a: in STD_LOGIC_VECTOR (3 downto 0);
+           b: in STD_LOGIC_VECTOR (3 downto 0);
+           c: in STD_LOGIC_VECTOR (3 downto 0);
+           d: in STD_LOGIC_VECTOR (3 downto 0);
+           e: in STD_LOGIC_VECTOR (3 downto 0);
+           en : in STD_LOGIC;
+           an1 : out STD_LOGIC_VECTOR (3 downto 0);
+           an2 : out STD_LOGIC_VECTOR (3 downto 0);
+           seg : out STD_LOGIC_VECTOR (6 downto 0));
+end component SSD;
+
+component debouncer is
+    Port ( btn : in  STD_LOGIC;
+           clk : in  STD_LOGIC;
+           enable : out  STD_LOGIC);
+end component debouncer;
+
+signal a: STD_LOGIC_VECTOR (3 downto 0);
+signal b: STD_LOGIC_VECTOR (3 downto 0);
+signal c: STD_LOGIC_VECTOR (3 downto 0);
+signal d: STD_LOGIC_VECTOR (3 downto 0);
+signal keyboard_nr: STD_LOGIC_VECTOR (3 downto 0);
+signal a0: STD_LOGIC_VECTOR (3 downto 0);
+signal b0: STD_LOGIC_VECTOR (3 downto 0);
+signal c0: STD_LOGIC_VECTOR (3 downto 0);
+signal d0: STD_LOGIC_VECTOR (3 downto 0);
+
+signal rst: STD_LOGIC;
+signal err: STD_LOGIC;
+signal op: STD_LOGIC;
+signal cl: STD_LOGIC;
+signal en_SSD: STD_LOGIC_VECTOR (3 downto 0);---------------------------------
+signal btn: STD_LOGIC;
+signal count: STD_LOGIC_VECTOR (2 downto 0);
+
+begin
+
+l1: debouncer port map (but,clk,btn);
+l2: decoder port map (clk,en,JA1,JA2,keyboard_nr);
+l3: SSD port map (clk,err,op,cl,en_SSD,a0,b0,c0,d0,keyboard_nr,en,an1,an2,seg);
+
+process(en,reset,btn,a,b,c,d,a0,b0,c0,d0,keyboard_nr,count)
+begin
+if en = '0' then a0 <= "0000";
+                 b0 <= "0000";
+                 c0 <= "0000";
+                 d0 <= "0000";
+                 count <= "000";
+                 err <= '0';
+                 op <= '0';
+                 cl <= '0';
+                 en_SSD <= "0000";-----------------------------------------
+elsif(en = '1' and btn = '1' and btn'event) then
+    if(count = "000") then a0 <= keyboard_nr;
+                           count <= "001";
+                           en_SSD <= "1000";-------------------------
+    elsif(count = "001") then b0 <= keyboard_nr;
+                              count <= "010";
+                              en_SSD <= "1100";-------------------
+    elsif(count = "010") then c0 <= keyboard_nr;
+                              count <= "011";
+                              en_SSD <= "1110";--------------------
+    elsif(count = "011") then d0 <= keyboard_nr;
+                              count <= "100";
+                              en_SSD <= "1111";------------------------
+    elsif count = "100" then
+        if led = '0' then a <= a0;
+                          b <= b0;
+                          c <= c0;
+                          d <= d0;
+                          led <= '1';
+                          a0 <= "0000";
+                          b0 <= "0000";
+                          c0 <= "0000";
+                          d0 <= "0000";
+                          count <= "000";
+                          cl <= '1';
+        elsif a = a0 and b = b0 and c = c0 and d = d0 then led <= '0';
+                                                           a <= "0000";
+                                                           b <= "0000";
+                                                           c <= "0000";
+                                                           d <= "0000";
+                                                           count <= "000";
+                                                           a0 <= "0000";
+                                                           b0 <= "0000";
+                                                           c0 <= "0000";
+                                                           d0 <= "0000";
+                                                           op <= '1';
+        else err <= '1';
+        end if;
+    end if;
+end if;
+
+if reset = '1' then led <= '0';
+                    a <= "0000";
+                    b <= "0000";
+                    c <= "0000";
+                    d <= "0000";
+                    count <= "000";
+                    a0 <= "0000";
+                    b0 <= "0000";
+                    c0 <= "0000";
+                    d0 <= "0000";  
+                    err <= '0';  
+                    op <= '0';
+                    cl <= '0'; 
+                    en_SSD <= "0000";--------------------------------               
+end if;
+end process;
+end Behavioral;
